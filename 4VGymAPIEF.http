@@ -1,6 +1,190 @@
 @_4VGymAPIEF_HostAddress = http://localhost:5130
 
-GET {{_4VGymAPIEF_HostAddress}}/weatherforecast/
+# Pruebas de 4VGymAPIEF contra la BBDD 4vGym (SQL Server).
+# Antes de probar, ejecuta BBDD/script.txt en SSMS para tener los datos iniciales.
+# Los POST correctos (201) guardan de verdad en la BBDD: si los repites dan error
+# de duplicado. Para volver a empezar, ejecuta otra vez el script.
+
+######## TIPOS DE ACTIVIDAD ########
+
+### GET de todos los tipos de actividad (salen los 4 del script)
+GET {{_4VGymAPIEF_HostAddress}}/activity-types
 Accept: application/json
 
-###
+### POST de tipo de actividad happy path (201, Id 41)
+POST {{_4VGymAPIEF_HostAddress}}/activity-types
+Content-Type: application/json
+
+{
+  "name": "Zumba",
+  "number-monitors": 3
+}
+
+### POST de tipo de actividad con nombre repetido, aunque cambien mayúsculas (error 5)
+POST {{_4VGymAPIEF_HostAddress}}/activity-types
+Content-Type: application/json
+
+{
+  "name": "bodypump",
+  "number-monitors": 2
+}
+
+### POST de tipo de actividad sin nombre (error 4)
+POST {{_4VGymAPIEF_HostAddress}}/activity-types
+Content-Type: application/json
+
+{
+  "number-monitors": 3
+}
+
+### POST de tipo de actividad con nombre vacío (error 4)
+POST {{_4VGymAPIEF_HostAddress}}/activity-types
+Content-Type: application/json
+
+{
+  "name": "",
+  "number-monitors": 3
+}
+
+######## MONITORES ########
+
+### GET de todos los monitores (salen los 3 del script)
+GET {{_4VGymAPIEF_HostAddress}}/instructors
+Accept: application/json
+
+### GET de un monitor por Id
+GET {{_4VGymAPIEF_HostAddress}}/instructors?id=1
+Accept: application/json
+
+### GET de un monitor que no existe (404, error 2)
+GET {{_4VGymAPIEF_HostAddress}}/instructors?id=99
+Accept: application/json
+
+### GET de monitores por inicial (Miguel y María)
+GET {{_4VGymAPIEF_HostAddress}}/instructors?first_initial=m
+Accept: application/json
+
+### POST de monitor happy path (201, Id 4)
+POST {{_4VGymAPIEF_HostAddress}}/instructors
+Content-Type: application/json
+
+{
+  "name": "David Noya",
+  "phone": "666554433",
+  "email": "david_noya@gmail.com",
+  "photo_url": "http://www.davidnoya.com/david_noya.jpg"
+}
+
+### POST de monitor con nombre repetido (error 34, lo comprueba el repositorio en la BBDD)
+POST {{_4VGymAPIEF_HostAddress}}/instructors
+Content-Type: application/json
+
+{
+  "name": "Miguel Goyena",
+  "phone": "666554433",
+  "email": "otro_miguel@gmail.com",
+  "photo_url": "http://www.davidnoya.com/david_noya.jpg"
+}
+
+### POST de monitor con teléfono incorrecto (error 4)
+POST {{_4VGymAPIEF_HostAddress}}/instructors
+Content-Type: application/json
+
+{
+  "name": "Ana Pérez",
+  "phone": "adsadsa",
+  "email": "ana_perez@gmail.com",
+  "photo_url": "http://www.anaperez.com/ana.jpg"
+}
+
+### POST de monitor con email incorrecto (error 4)
+POST {{_4VGymAPIEF_HostAddress}}/instructors
+Content-Type: application/json
+
+{
+  "name": "Ana Pérez",
+  "phone": "666554433",
+  "email": "ana_perez@cuatrovientos.org",
+  "photo_url": "http://www.anaperez.com/ana.jpg"
+}
+
+### POST de monitor vacío (error 3)
+POST {{_4VGymAPIEF_HostAddress}}/instructors
+Content-Type: application/json
+
+{
+}
+
+######## ACTIVIDADES ########
+
+### POST de actividad happy path (201): guarda la actividad y sus 2 filas en ActivityInstructor
+POST {{_4VGymAPIEF_HostAddress}}/activities
+Content-Type: application/json
+
+{
+  "activity_type_id": 1,
+  "instructors_id": [1, 2],
+  "max_particpants": 20,
+  "date_start": "2027-03-01T10:00:00",
+  "date_end": "2027-03-01T11:00:00"
+}
+
+### POST de actividad con tipo y monitor que no existen (errores 34 y 35 a la vez)
+POST {{_4VGymAPIEF_HostAddress}}/activities
+Content-Type: application/json
+
+{
+  "activity_type_id": 999,
+  "instructors_id": [1, 99],
+  "max_particpants": 20,
+  "date_start": "2027-03-01T10:00:00",
+  "date_end": "2027-03-01T11:00:00"
+}
+
+### POST de actividad con más de 25 participantes (error 25)
+POST {{_4VGymAPIEF_HostAddress}}/activities
+Content-Type: application/json
+
+{
+  "activity_type_id": 1,
+  "instructors_id": [1, 2],
+  "max_particpants": 30,
+  "date_start": "2027-03-01T10:00:00",
+  "date_end": "2027-03-01T11:00:00"
+}
+
+### POST de actividad con fecha de inicio pasada (error 40)
+POST {{_4VGymAPIEF_HostAddress}}/activities
+Content-Type: application/json
+
+{
+  "activity_type_id": 1,
+  "instructors_id": [1, 2],
+  "max_particpants": 20,
+  "date_start": "2025-10-21T10:00:00",
+  "date_end": "2025-10-21T11:00:00"
+}
+
+### POST de actividad que acaba antes de empezar (error 41)
+POST {{_4VGymAPIEF_HostAddress}}/activities
+Content-Type: application/json
+
+{
+  "activity_type_id": 1,
+  "instructors_id": [1, 2],
+  "max_particpants": 20,
+  "date_start": "2027-03-01T11:00:00",
+  "date_end": "2027-03-01T10:00:00"
+}
+
+### POST de actividad sin monitores (error 27)
+POST {{_4VGymAPIEF_HostAddress}}/activities
+Content-Type: application/json
+
+{
+  "activity_type_id": 1,
+  "instructors_id": [],
+  "max_particpants": 20,
+  "date_start": "2027-03-01T10:00:00",
+  "date_end": "2027-03-01T11:00:00"
+}
