@@ -1,0 +1,57 @@
+-- =============================================
+-- 4VGym - Datos de la BBDD
+-- Las tablas las crea la migración de EF (4VGymEF).
+-- Ejecutar en SQL Server Management Studio (F5).
+-- =============================================
+USE [4vGym];
+GO
+
+-- 1. Vaciar las tablas (primero las que tienen claves ajenas)
+DELETE FROM ActivityInstructor;
+DELETE FROM Activities;
+DELETE FROM Instructors;
+DELETE FROM ActivityTypes;
+
+-- 2. Tipos de actividad (los mismos que en 4VGymAPI)
+SET IDENTITY_INSERT ActivityTypes ON;
+INSERT INTO ActivityTypes (Id, Name, NumberMonitors) VALUES
+(1,  N'BodyPump', 2),
+(2,  N'Spinning', 1),
+(3,  N'Pilates',  1),
+(40, N'CrossFit', 3);
+SET IDENTITY_INSERT ActivityTypes OFF;
+
+-- 3. Monitores (los mismos que en 4VGymAPI)
+SET IDENTITY_INSERT Instructors ON;
+INSERT INTO Instructors (Id, Name, Email, Phone, PhotoUrl) VALUES
+(1, N'Miguel Goyena', N'miguel_goyena@cuatrovientos.org', N'654121212', N'https://img.magnific.com/vector-premium/imagen-perfil-avatar-hombre-aislada-fondo-imagen-profil-avatar-hombre_1293239-4841.jpg?semt=ais_hybrid&w=740&q=80'),
+(2, N'María Martín',  N'maria_martin@cuatrovientos.org',  N'663423121', N'https://img.magnific.com/vector-premium/avatar-mujer-sonriente_937492-6135.jpg?semt=ais_hybrid&w=740&q=80'),
+(3, N'Iban Sarría',   N'iban_sarria@cuatrovientos.org',   N'654646464', N'https://img.magnific.com/vector-premium/imagen-perfil-avatar-hombre-aislada-fondo-imagen-profil-avatar-hombre_1293239-4861.jpg?semt=ais_hybrid&w=740&q=80');
+SET IDENTITY_INSERT Instructors OFF;
+
+-- 4. Actividades
+SET IDENTITY_INSERT Activities ON;
+INSERT INTO Activities (Id, ActivityTypeId, MaxParticipants, DateStart, DateEnd) VALUES
+(1, 1,  20, '2027-01-11T10:00:00', '2027-01-11T11:00:00'),
+(2, 2,  15, '2027-01-12T18:00:00', '2027-01-12T19:00:00'),
+(3, 3,  12, '2027-01-13T09:30:00', '2027-01-13T10:30:00'),
+(4, 40, 25, '2027-01-15T19:00:00', '2027-01-15T20:30:00');
+SET IDENTITY_INSERT Activities OFF;
+
+-- 5. Monitores de cada actividad (tabla intermedia de la relación M:N)
+INSERT INTO ActivityInstructor (ActivitiesId, InstructorsId) VALUES
+(1, 1), (1, 2),
+(2, 3),
+(3, 2),
+(4, 1), (4, 2), (4, 3);
+
+-- 6. Que los próximos Id sigan después de los datos insertados
+DBCC CHECKIDENT ('ActivityTypes', RESEED, 40);
+DBCC CHECKIDENT ('Instructors',   RESEED, 3);
+DBCC CHECKIDENT ('Activities',    RESEED, 4);
+
+-- 7. Comprobación
+SELECT * FROM ActivityTypes;
+SELECT * FROM Instructors;
+SELECT * FROM Activities;
+SELECT * FROM ActivityInstructor;
