@@ -1,0 +1,6 @@
+@_4VGymAPIEF_HostAddress = http://localhost:5130
+
+GET {{_4VGymAPIEF_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
