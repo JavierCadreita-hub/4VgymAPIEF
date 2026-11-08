@@ -1,11 +1,15 @@
 using _4VGymAPIEF.Data;
 using _4VGymAPIEF.Dtos;
-//using _4VGymAPIEF.Repositories;   // descoméntalo cuando crees los repositorios
+using _4VGymAPIEF.Repositories;   
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<ActivityTypeRepository>();
+builder.Services.AddScoped<InstructorRepository>();
+builder.Services.AddScoped<ActivityRepository>();
 
 // Añadir los controladores (igual que en 4VGymAPI)
 builder.Services.AddControllers()
